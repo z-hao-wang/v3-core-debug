@@ -156,12 +156,30 @@ const TEST_POOLS: PoolTestCase[] = [
     description: 'high fee, 1:1 price, buggy swap calculation',
     feeAmount: FeeAmount.HIGH,
     tickSpacing: TICK_SPACINGS[FeeAmount.HIGH],
-    startingPrice: BigNumber.from('3905891053926514387903925684'),//encodePriceSqrt(1, 1),
+    startingPrice: BigNumber.from('3905891053926514387903925684'),
     positions: [
       {
         tickLower: -60200,
         tickUpper: 138200,
         liquidity: '1505426792435356595487',
+      },
+    ],
+    swapTests: [{
+      zeroForOne: true,
+      exactOut: false,
+      amount0: expandTo18Decimals(1),
+    }],
+  },
+  {
+    description: 'high fee, 1:1 price, default config',
+    feeAmount: FeeAmount.HIGH,
+    tickSpacing: TICK_SPACINGS[FeeAmount.HIGH],
+    startingPrice: encodePriceSqrt(1, 1),
+    positions: [
+      {
+        tickLower: getMinTick(TICK_SPACINGS[FeeAmount.HIGH]),
+        tickUpper: getMaxTick(TICK_SPACINGS[FeeAmount.HIGH]),
+        liquidity: expandTo18Decimals(2),
       },
     ],
     swapTests: [{
@@ -328,12 +346,12 @@ describe.only('UniswapV3Pool swap tests', () => {
             JSBI.BigInt(liquidity),
             slot0.tick,
             [{
-              index: -60200,
+              index: poolCase.positions[0].tickLower,
               liquidityNet: JSBI.BigInt(tickLower.liquidityNet.toString()),
               liquidityGross: JSBI.BigInt(tickLower.liquidityGross.toString()),
             }, 
             {
-              index: 138200,
+              index: poolCase.positions[0].tickUpper,
               liquidityNet: JSBI.BigInt(tickUpper.liquidityNet.toString()),
               liquidityGross: JSBI.BigInt(tickUpper.liquidityGross.toString()),
             }],
@@ -343,7 +361,9 @@ describe.only('UniswapV3Pool swap tests', () => {
           const outputJs = await poolJs.getOutputAmount(inputAmount);
           console.log('contract swap price', executionPrice.toPrecision(5))
           console.log("outputJs price", outputJs[0].toSignificant(5))
+          const swapDiff = parseFloat(executionPrice.toPrecision(5)) / parseFloat(outputJs[0].toSignificant(5));
           console.log("diff", parseFloat(executionPrice.toPrecision(5)) / parseFloat(outputJs[0].toSignificant(5)));
+          expect(swapDiff).to.lt(1.001).gt(0.999);
         })
       }
     })
