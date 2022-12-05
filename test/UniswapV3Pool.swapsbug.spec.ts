@@ -156,6 +156,7 @@ const TEST_POOLS: PoolTestCase[] = [
     description: 'high fee, 1:1 price, buggy swap calculation',
     feeAmount: FeeAmount.HIGH,
     tickSpacing: TICK_SPACINGS[FeeAmount.HIGH],
+    //TickMath.getTickAtSqrtRatio(JSBI.BigInt('3905891053926514387903925684'))) = -60200
     startingPrice: BigNumber.from('3905891053926514387903925684'),
     positions: [
       {
